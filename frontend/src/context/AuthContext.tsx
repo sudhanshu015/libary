@@ -16,6 +16,24 @@ interface AuthContextValue {
   isAdmin: boolean;
 }
 
+interface AuthResponse {
+  success?: boolean;
+  message?: string;
+  data?: AuthUser | { token: string; user: AuthUser };
+}
+
+async function readAuthResponse(res: Response): Promise<AuthResponse> {
+  try {
+    const body: unknown = await res.json();
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      throw new TypeError("Invalid API response");
+    }
+    return body as AuthResponse;
+  } catch {
+    throw new Error(`API returned an invalid response (HTTP ${res.status}). Check the backend deployment.`);
+  }
+}
+
 const AuthContext = createContext<AuthContextValue>({
   user: null,
   token: null,
@@ -42,8 +60,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const res = await fetch(`${API_BASE}/api/auth/me`, {
         headers: { Authorization: `Bearer ${jwt}` },
       });
-      const json = await res.json();
-      if (res.ok && json.success) {
+      const json = await readAuthResponse(res);
+      if (res.ok && json.success && json.data && "role" in json.data) {
         setUser(json.data);
       } else {
         localStorage.removeItem(TOKEN_KEY);
@@ -73,11 +91,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
     });
-    const json = await res.json();
+    const json = await readAuthResponse(res);
     if (!res.ok || !json.success) {
       throw new Error(json.message || "Login failed");
     }
-    const { token: jwt, user: userData } = json.data;
+    const data = json.data;
+    if (!data || !("token" in data) || !data.token || !data.user) {
+      throw new Error("Login response is missing the token or user.");
+    }
+    const { token: jwt, user: userData } = data;
     localStorage.setItem(TOKEN_KEY, jwt);
     setToken(jwt);
     setUser(userData);

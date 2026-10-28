@@ -37,6 +37,10 @@ const connectWithFallback = async (uri: string): Promise<typeof mongoose> => {
 const connectDB = async (): Promise<void> => {
   if (cached.conn) return;
 
+  if (process.env.VERCEL === "1" && !process.env.MONGODB_URI) {
+    throw new Error("MONGODB_URI must be configured for the Vercel deployment");
+  }
+
   const uri = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/libraryos";
 
   if (!cached.promise) {

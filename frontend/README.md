@@ -29,6 +29,10 @@ npm run dev
 
 Open [http://localhost:5173](http://localhost:5173) in your browser.
 
+## Vercel deployment
+
+Set `VITE_API_URL` in the frontend Vercel project to the backend's public origin (for example, `https://your-backend.example.com`, without a trailing slash or `/api`). Set `FRONTEND_URL` in the backend deployment to the frontend's exact origin so the API allows browser requests.
+
 ## Project Structure
 
 ```

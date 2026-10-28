@@ -10,7 +10,9 @@ export const DEFAULT_ADMIN_PASSWORD = "admin123";
 export async function seedDefaultAdmin(): Promise<void> {
   await connectDB();
 
-  const existingUser = await User.findOne({ email: DEFAULT_ADMIN_EMAIL.toLowerCase() });
+  const email = process.env.ADMIN_EMAIL || DEFAULT_ADMIN_EMAIL;
+  const password = process.env.ADMIN_PASSWORD || DEFAULT_ADMIN_PASSWORD;
+  const existingUser = await User.findOne({ email: email.toLowerCase() });
   if (existingUser) {
     console.log(`✅ Default admin already exists: ${existingUser.email}`);
     return;
@@ -18,8 +20,8 @@ export async function seedDefaultAdmin(): Promise<void> {
 
   const admin = await User.create({
     name: "Admin",
-    email: DEFAULT_ADMIN_EMAIL,
-    password: DEFAULT_ADMIN_PASSWORD,
+    email,
+    password,
     role: "admin",
     isActive: true,
   });

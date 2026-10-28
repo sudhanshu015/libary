@@ -38,6 +38,17 @@ Server runs at **http://localhost:5000**
 | `NODE_ENV`     | `development`                             | Environment mode         |
 | `FRONTEND_URL` | `http://localhost:5173`                   | CORS allowed origin      |
 
+### Vercel deployment
+
+Configure these environment variables in the backend Vercel project before deploying:
+
+- `MONGODB_URI` — a persistent MongoDB connection string (for example, MongoDB Atlas)
+- `JWT_SECRET` — a long, unique secret used to sign tokens
+- `ADMIN_EMAIL` and `ADMIN_PASSWORD` — credentials for the initial admin account
+- `FRONTEND_URL` — the deployed frontend origin, used by CORS
+
+The serverless API initializes the database and creates the initial admin account on its first request. It returns a JSON `503` if initialization fails, rather than a Vercel function error page.
+
 ---
 
 ## API Reference

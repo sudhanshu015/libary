@@ -10,6 +10,24 @@ const BASE_URL = import.meta.env.VITE_API_URL
 
 const TOKEN_KEY = "libraryos_token";
 
+interface ApiResponse {
+  success?: boolean;
+  message?: string;
+  data?: unknown;
+}
+
+async function readApiResponse(res: Response): Promise<ApiResponse> {
+  try {
+    const body: unknown = await res.json();
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
+      throw new TypeError("Invalid API response");
+    }
+    return body as ApiResponse;
+  } catch {
+    throw new Error(`API returned an invalid response (HTTP ${res.status}). Check the backend deployment.`);
+  }
+}
+
 function getToken(): string | null {
   return localStorage.getItem(TOKEN_KEY);
 }
@@ -39,7 +57,7 @@ async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
     throw new Error("Session expired. Please log in again.");
   }
 
-  const json = await res.json();
+  const json = await readApiResponse(res);
   if (!res.ok || !json.success) {
     throw new Error(json.message || "API request failed");
   }
@@ -63,7 +81,7 @@ async function requestFull<T>(endpoint: string, options?: RequestInit): Promise<
     throw new Error("Session expired. Please log in again.");
   }
 
-  const json = await res.json();
+  const json = await readApiResponse(res);
   if (!res.ok || !json.success) {
     throw new Error(json.message || "API request failed");
   }
